@@ -57,6 +57,8 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define DAC_RESET_Pin GPIO_PIN_4
+#define DAC_RESET_GPIO_Port GPIOD
 
 /* USER CODE BEGIN Private defines */
 
