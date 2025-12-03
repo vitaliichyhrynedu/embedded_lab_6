@@ -163,7 +163,7 @@ void CS43L22_Beep(Pitch pitch, uint32_t duration_ms) {
 
   // Set volume and off time
   tx_buff[0] = 0x1D;            // Address
-  uint8_t volume = 0b11111 - 6; // -20 dB = -8 dB - (2 dB * 6 steps)
+  uint8_t volume = 0b11110;     // -10 dB
   tx_buff[1] = (0x00 | volume); // Value (volume and off time)
   HAL_I2C_Master_Transmit(&hi2c1, CS43L22_I2C_ADDR, (uint8_t *)&tx_buff, 2, I2C_TIMEOUT);
 
@@ -184,6 +184,29 @@ void CS43L22_Beep(Pitch pitch, uint32_t duration_ms) {
   tx_buff[0] = 0x1E; // Address
   tx_buff[1] = 0x00; // Value (beep and tone configuration)
   HAL_I2C_Master_Transmit(&hi2c1, CS43L22_I2C_ADDR, (uint8_t *)&tx_buff, 2, I2C_TIMEOUT);
+}
+
+void CS43L22_PlayMelody() {
+  const Pitch pitches[] = {
+    PITCH_G5, PITCH_D6, PITCH_C6, PITCH_G5, PITCH_B5, PITCH_B5, PITCH_C6,
+    PITCH_G5, PITCH_C6, PITCH_G5, PITCH_B5, PITCH_B5, PITCH_C6,
+    PITCH_G5, PITCH_D6, PITCH_C6, PITCH_G5, PITCH_B5, PITCH_B5, PITCH_C6,
+    PITCH_G5, PITCH_C6, PITCH_E6, PITCH_D6, PITCH_C6, PITCH_D6
+  };
+
+  const uint32_t durations[] = {
+    500, 500, 500, 500, 750, 750, 1000,
+    500, 500, 500, 750, 750, 500,
+    500, 500, 500, 500, 750, 750, 1000,
+    500, 500, 500, 750, 750, 500
+  };
+
+  float tempo = 2.0f;
+
+  for (int i = 0; i < sizeof(pitches) / sizeof(pitches[0]); i++) {
+    CS43L22_Beep(pitches[i], (uint32_t)(durations[i] / tempo));
+    HAL_Delay(80);
+  };
 }
 
 /* USER CODE END 0 */
@@ -228,7 +251,6 @@ int main(void)
   HAL_I2S_Transmit_DMA(&hi2s3, (uint16_t *)i2s_buff, I2S_BUFF_LEN);
 
   uint8_t has_played = 0;
-
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -236,10 +258,7 @@ int main(void)
   while (1)
   {
     if (!has_played) {
-      for (int i = 0; i < 3; i++) {
-        CS43L22_Beep(PITCH_C4, 1000);
-        HAL_Delay(500);
-      }
+      CS43L22_PlayMelody();
       has_played = 1;
     }
     /* USER CODE END WHILE */
